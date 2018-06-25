@@ -1,0 +1,18 @@
+{
+    "name": "commnetivity/purehtml",
+    "type": "parser",
+    "description": "HTML Processing leveraging PHP's DOM functions",
+    "homepage": "https://commnetivity.com/labs/purehtml.html",
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "name": "Nicholas Maietta",
+            "email": "nick@icode4u.com",
+            "homepage": "http://icode4u.com",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "files": ["src/purehtml.class.php"]
+    }
+}
