@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.com/commnetivity/pureHTML.svg?branch=master)](https://travis-ci.com/commnetivity/pureHTML) (actually, this class works, but the builds fail because there are no PHP Unit tests and instructions set up yet for Travis-CI)
-
 PureHTML DOM Processor
 ======
 
