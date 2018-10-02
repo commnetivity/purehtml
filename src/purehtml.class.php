@@ -280,62 +280,37 @@ class PureHTML {
 		return false;
 	}
 	
-	function beautifyDOM($html, $depth=1) {
-		if ( $depth == 1 ) $markup = "<!DOCTYPE html>\n";
-		$no_returns = array("title", "a", "script", "h1", "h2", "h3", "h5", "h6", "p", "legend", "label", "br", "span", "option", "button", "iframe", "i");
-		$self_closing = array("area", "base","br","col","command","embed","hr","img","input","keygen","link","meta","source","track","wbr");
-		foreach ($html->childNodes as $node) {
-			if ($node->nodeType == XML_ELEMENT_NODE ) {
-				$markup .= ( $node->parentNode->tagName != "p" )
-					?        str_repeat("   ", $depth-1)."<" . $node->tagName
-					: "\n" . str_repeat("   ", $depth-1)."<" . $node->tagName;
-				foreach($node->attributes as $attribute) {
-					$markup .= " ".$attribute->name;
-					if ($attribute->value != "") {
-						$markup .= '="'.$attribute->value.'"';
-					}
+	function beautifyDOM($doc, $depth=1) {
+		/* Beautify the HTML output */
+		$xpath = new DOMXPath($doc);
+		foreach($xpath->query("//text()") as $node) {
+			$node->nodeValue = preg_replace(["/^[\s\r\n]+/", "/[\s\r\n]+$/"], "", $node->nodeValue);
+			if( strlen($node->nodeValue) == 0 ) $node->parentNode->removeChild($node);
+		}
+		$format = (function($dom, $currentNode=false, $depth=0) use (&$format) {
+			if ( $currentNode === false ) {
+				$dom->removeChild($dom->firstChild);
+				$currentNode = $dom;
+			}
+			$indentCurrent = ( ( $currentNode->nodeType == XML_TEXT_NODE) && ($currentNode->parentNode->childNodes->length == 1) ) ? false : true;
+			if ( $indentCurrent && $depth > 1 ) {
+				$textNode = $dom->createTextNode("\n" . str_repeat("  ", $depth));
+				$currentNode->parentNode->insertBefore($textNode, $currentNode);
+			}
+			if ( $currentNode->childNodes ) {
+				$indentClosingTag = false;
+				foreach($currentNode->childNodes as $childNode) {
+					$indentClosingTag = $format($dom, $childNode, $depth+1);
 				}
-				if ( $node->hasChildNodes() ) {
-					$factorial = function($n, $depth) use (&$factorial) {
-						foreach ($n->childNodes as $p) {
-							if (!$this->hasChild($p)) {
-								$p->nodeValue = wordwrap(trim($p->nodeValue), 200, "\n".str_repeat("   ", $depth));
-								return false;
-							} else {
-								$factorial($p, $depth);
-							}
-						}
-					};
-					$factorial($node, $depth);
-				}
-				if ( in_array($node->tagName, $self_closing) && $node->parentNode->nodeName != "head" ) {
-					$markup .= ' />'.trim($node->nodeValue);
-				} else {
-					$markup .= ( in_array($node->tagName, $no_returns) ) ? '>'.trim($node->nodeValue) : ">\n";
-				}
-				$markup .= $this->beautifyDOM($node, $depth+1);
-				if ( !in_array($node->tagName, $self_closing) ) {
-					if ( !in_array($node->tagName, $no_returns) ) {
-						$markup .= str_repeat("   ", $depth-1);
-					}
-					$markup .= "</" . $node->tagName . ">\n";	
-				}
-				if ( $node->parentNode->tagName == "p" ) {
-					$markup .= str_repeat("  ", $depth);
+				if ( $indentClosingTag ) {
+					$textNode = ( $currentNode->tagName != "html" ) ? $dom->createTextNode("\n" . str_repeat("  ", $depth)) : $dom->createTextNode("\n");
+					$currentNode->appendChild($textNode);
 				}
 			}
-		}
-		$markup = preg_replace('/a>\n\s+<\/li/', 'a></li', $markup);
-		$markup = preg_replace('/li>\n\s+<a/', 'li><a', $markup);
-		$markup = preg_replace('/<\/a>\n\s+<\/p>/', '</a></p>', $markup);
-		$markup = preg_replace('/>\n\s+<input/', '><input', $markup);
-		$markup = preg_replace('/>\n\s+<button/', '><button', $markup);
-		$markup = preg_replace('/\n\s+<a/', ' <a', $markup);
-		$markup = preg_replace('/">\n\s+<\//', '"></', $markup);
-		$markup = preg_replace('/\/>\s+<\//', "/></",  $markup);
-		$markup = str_replace("<br /></p>", "</p>", $markup);
-		$markup = preg_replace('/p>\n\s+<img/', 'p><img', $markup);
-		return $markup;
+			return $indentCurrent;
+		});
+		$format($doc);
+		return "<!DOCTYPE html>\n" . trim($doc->saveHTML());
 	}
 }
 
