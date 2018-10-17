@@ -303,7 +303,7 @@ class PureHTML {
 					$indentClosingTag = $format($dom, $childNode, $depth+1);
 				}
 				if ( $indentClosingTag ) {
-					$textNode = ( $currentNode->tagName != "html" ) ? $dom->createTextNode("\n" . str_repeat("  ", $depth)) : $dom->createTextNode("\n");
+					$textNode = ( isset($currentNode->tagName) && $currentNode->tagName != "html" ) ? $dom->createTextNode("\n" . str_repeat("  ", $depth)) : $dom->createTextNode("\n");
 					$currentNode->appendChild($textNode);
 				}
 			}
