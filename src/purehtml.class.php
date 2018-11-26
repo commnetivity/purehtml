@@ -54,6 +54,25 @@ class PureHTML {
 						$this->index[] = $key;
 					}
 				}
+				
+				$assets = $block->getElementsByTagName('meta');
+				for ($i = 0; $i < $assets->length; $i++) {
+					$resource = $assets->item($i);
+					$attributes = array();
+					foreach ($resource->attributes as $attribute=>$value) {
+						if ( strlen($value->nodeValue) > 0 ) {
+							$attributes[$value->nodeName] = trim($value->nodeValue);
+						}
+					}
+					ksort($attributes);
+					$key = sha1(serialize($attributes));
+					if ( !in_array($key, $this->index) ) {
+						$this->metatags[] = $attributes;
+						$this->index[] = $key;
+					}
+				}
+				
+				
 				$assets = $block->getElementsByTagName('script');
 				for ($i = 0; $i < $assets->length; $i++) {
 					$resource = $assets->item($i);
@@ -266,6 +285,22 @@ class PureHTML {
 				}
 			}
 		}
+
+		foreach($this->metatags as $resources) {
+			$domDocument = new DOMDocument();
+			$domElement = $domDocument->createElement('meta');
+			foreach($resources as $element=>$value) {
+				$domAttribute = $domDocument->createAttribute($element);
+				$domAttribute->value = $value;
+				$domElement->appendChild($domAttribute);
+			}
+			$domDocument->appendChild($domElement);
+			$frag = $dom->createDocumentFragment();
+			$items = explode("\n", $domDocument->saveXML()); array_shift($items);
+			$frag->appendXML(implode("\n", $items));
+			$dom->getElementsByTagName('head')->item(0)->appendChild($frag);
+		}
+		
 		return $dom;
     }
 	
