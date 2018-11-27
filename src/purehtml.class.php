@@ -171,7 +171,7 @@ class PureHTML {
                 $nodes = $html->getElementsByTagName("style");
                 while ($nodes->length > 0) { $node = $nodes->item(0); $this->removeNode($node); }
                 $nodes = $html->getElementsByTagName("script");
-                while ($nodes->length > 0) { $node = $nodes->item(0); $this->removeNode($node); }
+                while ($nodes->length > 0) { $node = $nodes->item(0); $this->removeNode($node); }				
                 break;
         }
 		return $html->saveHTML();
@@ -196,8 +196,25 @@ class PureHTML {
 
     public function rebuild($html, $resources=false) {
 		$dom = $this->getInstanceOfDom($html);
+
+		$nodes = $dom->getElementsByTagName("meta");
+		while ($nodes->length > 0) { $node = $nodes->item(0); $this->removeNode($node); }	
+
+		foreach($this->metatags as $resources) {
+			$domDocument = new DOMDocument();
+			$domElement = $domDocument->createElement('meta');
+			foreach($resources as $element=>$value) {
+				$domAttribute = $domDocument->createAttribute($element);
+				$domAttribute->value = $value;
+				$domElement->appendChild($domAttribute);
+			}
+			$domDocument->appendChild($domElement);
+			$frag = $dom->createDocumentFragment();
+			$items = explode("\n", $domDocument->saveXML()); array_shift($items);
+			$frag->appendXML(implode("\n", $items));
+			$dom->getElementsByTagName('head')->item(0)->appendChild($frag);
+		}
 		
-		$this->used = array();
 		foreach($this->stylesheets as $dom_location=>$resources) {
 			foreach($resources as $resource) {
 				$domDocument = new DOMDocument();
@@ -285,21 +302,6 @@ class PureHTML {
 				}
 			}
 		}
-
-		foreach($this->metatags as $resources) {
-			$domDocument = new DOMDocument();
-			$domElement = $domDocument->createElement('meta');
-			foreach($resources as $element=>$value) {
-				$domAttribute = $domDocument->createAttribute($element);
-				$domAttribute->value = $value;
-				$domElement->appendChild($domAttribute);
-			}
-			$domDocument->appendChild($domElement);
-			$frag = $dom->createDocumentFragment();
-			$items = explode("\n", $domDocument->saveXML()); array_shift($items);
-			$frag->appendXML(implode("\n", $items));
-			$dom->getElementsByTagName('head')->item(0)->appendChild($frag);
-		}
 		
 		return $dom;
     }
@@ -322,7 +324,7 @@ class PureHTML {
 			$node->nodeValue = preg_replace(["/^[\s\r\n]+/", "/[\s\r\n]+$/"], "", $node->nodeValue);
 			if( strlen($node->nodeValue) == 0 ) $node->parentNode->removeChild($node);
 		}
-		$format = (function($dom, $currentNode=false, $depth=0) use (&$format) {
+		$format = (function($dom, $currentNode=false, $depth=0) use (&$format) { 
 			if ( $currentNode === false ) {
 				$dom->removeChild($dom->firstChild);
 				$currentNode = $dom;
@@ -345,7 +347,7 @@ class PureHTML {
 			return $indentCurrent;
 		});
 		$format($doc);
-		return "<!DOCTYPE html>\n" . trim($doc->saveHTML());
+		return "<!DOCTYPE html>\n" . $doc->saveHTML();
 	}
 }
 
