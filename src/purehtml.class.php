@@ -22,13 +22,12 @@ class PureHTML {
 	
     public function scan($html, $target="") {
 		$html = $this->getInstanceOfDom($html);
-		$blocks = array();
 		if ( $target == "body" ) {
-			$blocks = array("body");
+			$blocks = ["body"];
 		} elseif( $target == "head" ) {
-			$blocks = array("head");
+			$blocks = ["head"];
 		} else {
-			$blocks = array("body", "head");
+			$blocks = ["body", "head"];
 		}
 
 		foreach($blocks as $block) {
@@ -39,9 +38,7 @@ class PureHTML {
 					$resource = $assets->item($i);
 					$attributes = array();
 					foreach ($resource->attributes as $attribute=>$value) {
-						if ( strlen($value->nodeValue) > 0 ) {
-							$attributes[$value->nodeName] = trim($value->nodeValue);
-						}
+						if ( strlen($value->nodeValue) > 0 ) $attributes[$value->nodeName] = trim($value->nodeValue);
 					}
 					ksort($attributes);
 					$key = sha1(serialize($attributes));
@@ -60,9 +57,7 @@ class PureHTML {
 					$resource = $assets->item($i);
 					$attributes = array();
 					foreach ($resource->attributes as $attribute=>$value) {
-						if ( strlen($value->nodeValue) > 0 ) {
-							$attributes[$value->nodeName] = trim($value->nodeValue);
-						}
+						if ( strlen($value->nodeValue) > 0 ) $attributes[$value->nodeName] = trim($value->nodeValue);
 					}
 					ksort($attributes);
 					$key = sha1(serialize($attributes));
@@ -71,7 +66,6 @@ class PureHTML {
 						$this->index[] = $key;
 					}
 				}
-				
 				
 				$assets = $block->getElementsByTagName('script');
 				for ($i = 0; $i < $assets->length; $i++) {
@@ -104,7 +98,8 @@ class PureHTML {
 							$this->index[] = $key;
 						}
 					}
-				}	
+				}
+				
 				$assets = $block->getElementsByTagName('style');
 				for ($i = 0; $i < $assets->length; $i++) {
 					$resource = $assets->item($i);
@@ -118,7 +113,6 @@ class PureHTML {
 							}
 							$this->index[] = $key;
 						}
-						
 					}
 				}
 			}
@@ -145,9 +139,7 @@ class PureHTML {
 	
 	private function removeChildren(&$node) {
 		while ($node->firstChild) {
-			while ($node->firstChild->firstChild) {
-				$this->removeChildren($node->firstChild);
-			}
+			while ($node->firstChild->firstChild) $this->removeChildren($node->firstChild);
 			$node->removeChild($node->firstChild);
 		}
 	}
@@ -182,15 +174,13 @@ class PureHTML {
 		$doc = new DOMDocument();
 		$doc->loadHTML('<?xml encoding="UTF-8">' . $new);
 		$element = $html->getElementById($tag);
-		while($element->childNodes->length){
-			$element->removeChild($element->firstChild);
-		}
+		while($element->childNodes->length) $element->removeChild($element->firstChild);
 		$xpath = new DOMXPath($doc);
 		$body = $xpath->query('/html/body');
 		$frag = $html->createDocumentFragment();
 		$body = $doc->saveXml($body->item(0));
 		$frag->appendXML($body);
-		@$element->appendChild($frag);
+		$element->appendChild($frag);
 		return $html->saveHTML($html->documentElement);
     }
 
@@ -223,9 +213,7 @@ class PureHTML {
 					$keys = array_keys($resource);
 					$sorted_resource = array_merge(array_flip(array('href', 'integrity', 'crossorigin', 'hreflang', 'defer', 'rel', 'media', 'sizes',  'type')), $resource);
 					foreach($sorted_resource as $element=>$value) {
-						if ( !in_array($element, $keys) ) {
-							continue;
-						}
+						if ( !in_array($element, $keys) ) continue;
 						$domAttribute = $domDocument->createAttribute($element);
 						$domAttribute->value = $value;
 						$domElement->appendChild($domAttribute);
@@ -309,9 +297,7 @@ class PureHTML {
 	function hasChild($p) {
 		if ($p->hasChildNodes()) {
 			foreach ($p->childNodes as $c) {
-				if ($c->nodeType == XML_ELEMENT_NODE) {
-					return true;
-				}
+				if ($c->nodeType == XML_ELEMENT_NODE) return true;
 			}
 		}
 		return false;
