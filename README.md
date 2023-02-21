@@ -58,3 +58,21 @@ require("vendor/autoload.php");
 ... your script ...
 
 ```
+
+# Beautify DOM function, explained:
+
+This is a PHP function that beautifies the output of an HTML document by adding indentation and line breaks to make it more readable. Here is a breakdown of how it works:
+
+1. The function takes two parameters: `$doc`, which is the HTML document as a `DOMDocument` object, and `$depth`, which is the current depth of the recursion (default value is 1).
+2. It creates a new `DOMXPath` object to query the HTML document.
+3. It loops through all the text nodes in the HTML document using XPath, and removes any leading or trailing whitespace (including newlines, carriage returns, and spaces) from their values. If the resulting value is an empty string, it removes the node entirely.
+4. It defines a recursive function called `$format` that takes three parameters: `$dom`, which is the `DOMDocument` object representing the HTML document, `$currentNode`, which is the current node being formatted, and `$depth`, which is the current depth of the recursion.
+5. If `$currentNode` is false, it removes the first child node of `$dom` (which is typically the `<!DOCTYPE>` declaration) and sets `$currentNode` to `$dom` itself.
+6. It determines whether the current node should be indented by checking if it is a text node and its parent only has one child node. If so, it sets `$indentCurrent` to false; otherwise, it sets it to true.
+7. If `$indentCurrent` is true and `$depth` is greater than 1, it creates a new text node with a newline and `$depth` spaces and inserts it before `$currentNode`.
+8. It loops through all the child nodes of `$currentNode` and recursively calls `$format` on each one, passing in `$dom`, the child node, and `$depth+1`.
+9. If any of the child nodes was indented, it sets `$indentClosingTag` to true.
+10. If `$indentClosingTag` is true, it creates a new text node with a newline and `$depth` spaces (unless the current node is the `<html>` tag), and appends it to `$currentNode`.
+11. The function calls `$format` with `$doc` as the first argument and no second argument (which sets `$currentNode` to false), effectively formatting the entire HTML document.
+12. The function returns the formatted HTML document with a `<!DOCTYPE>` declaration at the beginning.
+
